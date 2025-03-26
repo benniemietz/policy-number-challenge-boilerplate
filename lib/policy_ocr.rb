@@ -21,7 +21,7 @@ module PolicyOcr
       policy_number = ''
       (0..8).each do |i|
         char_start = i*3 # each top, middle, and bottom is 3 chars so we need to get the start of each top, middle, and bottom
-        policy_number += self.get_number_from_pipes_and_underscores(segment[0..2].collect { |line| line[char_start..char_start+2] }.join)
+        policy_number += get_number_from_pipes_and_underscores(segment[0..2].collect { |line| line[char_start..char_start+2] })
       end
       policy_numbers << policy_number
     end
@@ -32,28 +32,72 @@ module PolicyOcr
   # given a string of pipes and underscores, return the number it represents
   def self.get_number_from_pipes_and_underscores(combination)
     case combination
-    when ' _ | ||_|'
+    when [' _ ',
+          '| |',
+          '|_|']
       '0'
-    when '     |  |'
+    when ['   ',
+          '  |',
+          '  |']
       '1'
-    when ' _  _||_ '
+    when [' _ ',
+          ' _|',
+          '|_ ']
       '2'
-    when ' _  _| _|'
+    when [' _ ',
+          ' _|',
+          ' _|']
       '3' 
-    when '   |_|  |'
+    when ['   ',
+          '|_|',
+          '  |']
       '4'
-    when ' _ |_  _|'
+    when [' _ ',
+          '|_ ',
+          ' _|']
       '5'
-    when ' _ |_ |_|'
+    when [' _ ',
+          '|_ ',
+          '|_|']
       '6'
-    when ' _   |  |'
+    when [' _ ',
+          '  |',
+          '  |']
       '7' 
-    when ' _ |_||_|'
+    when [' _ ',
+          '|_|',
+          '|_|']
       '8'
-    when ' _ |_| _|'
+    when [' _ ',
+          '|_|',
+          ' _|']
       '9'
     else
       '?'
     end
+  end
+
+  # given a policy number, return true if it is valid, false otherwise,
+  # using where positions are d9-d1, corresponding with the policy number
+  # and utizling the checksum calculation (d1+(2*d2)+(3*d3+...+(9*d9)) mod 11 = 0)
+  def self.is_valid_policy_number?(policy_number)
+    policy_number = policy_number.to_s if policy_number.is_a?(Integer)
+    if policy_number.length != 9
+      puts 'Policy number is not 9 numbers'
+      return false if policy_number.length != 9
+    elsif policy_number.include?('?')
+      puts 'Policy number contains a ?'
+      return false
+    end
+    
+    sum = 0
+    increment = 1
+    # Get the sum for the formula d1+(2*d2)+(3*d3+...+(9*d9))
+    (0..8).reverse_each do |i|
+      sum += increment * policy_number[i].to_i
+      increment += 1
+    end
+    
+    sum % 11 == 0
   end
 end

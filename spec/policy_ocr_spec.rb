@@ -26,4 +26,30 @@ describe PolicyOcr do
       expect { PolicyOcr.parse('not_a_file.txt') }.to raise_error(Errno::ENOENT)
     end
   end 
+
+  describe 'is_valid_policy_number?' do 
+    it 'accepts an integer' do 
+      expect(PolicyOcr.is_valid_policy_number?(457508000)).to be true
+    end
+
+    it 'accepts a string' do 
+      expect(PolicyOcr.is_valid_policy_number?('457508000')).to be true
+    end
+
+    it 'returns false if the policy number is not 9 digits' do 
+      expect(PolicyOcr.is_valid_policy_number?('45750800')).to be false
+    end
+
+    it 'returns false if the policy number contains a ?' do 
+      expect(PolicyOcr.is_valid_policy_number?('45750800?')).to be false
+    end
+
+    it 'returns true if the policy number is valid' do 
+      expect(PolicyOcr.is_valid_policy_number?('457508000')).to be true
+    end
+
+    it 'returns false if the policy number is invalid' do 
+      expect(PolicyOcr.is_valid_policy_number?('664371495')).to be false
+    end
+  end
 end
