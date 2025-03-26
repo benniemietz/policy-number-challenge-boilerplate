@@ -29,6 +29,21 @@ module PolicyOcr
     policy_numbers
   end
 
+  def self.process_output_file(input_file, output_file=nil)
+    policy_numbers = parse(input_file)
+    
+    # If no output file specified, create default output file input file
+    output_file = input_file.sub(/\.[^.]+\z/, '') + '_output.txt' if output_file.nil?
+    
+    File.open(output_file, 'w') do |file|
+      policy_numbers.each do |policy_number|
+        file.puts "#{policy_number} #{is_valid_policy_number?(policy_number)}"
+      end
+    end
+    
+    output_file
+  end
+
   # given a string of pipes and underscores, return the number it represents
   def self.get_number_from_pipes_and_underscores(combination)
     case combination
@@ -84,10 +99,10 @@ module PolicyOcr
     policy_number = policy_number.to_s if policy_number.is_a?(Integer)
     if policy_number.length != 9
       puts 'Policy number is not 9 numbers'
-      return false if policy_number.length != 9
+      return "ILL"
     elsif policy_number.include?('?')
       puts 'Policy number contains a ?'
-      return false
+      return "ILL"
     end
     
     sum = 0
@@ -98,6 +113,10 @@ module PolicyOcr
       increment += 1
     end
     
-    sum % 11 == 0
+    if sum % 11 == 0
+      return ""
+    else
+      return "ERR"
+    end
   end
 end
